@@ -6,6 +6,8 @@
   - [ ] M1b search
   - [ ] M1c report form
   - [ ] M1d case page and tip form
+  - [ ] M1e disaster pages: list of disasters, then every confirmed missing person under each one, with their details
+    (data structure added in M1a update 2)
 - [ ] **M2** Police workflow, email dispatch, stale-case escalation
 - [ ] **M3** Found reports, hospital and mortuary module
 - [ ] **M4** Poster generator

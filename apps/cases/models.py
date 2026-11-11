@@ -105,6 +105,47 @@ class Subject(models.Model):
         return self.full_name
 
 
+class Disaster(models.Model):
+    """A named event after which people went missing (flood, landslide, fire,
+    building collapse, attack, accident...). Created only by moderators or
+    platform admins so the list stays trustworthy."""
+
+    class Kind(models.TextChoices):
+        FLOOD = "flood", "Flood"
+        LANDSLIDE = "landslide", "Landslide"
+        FIRE = "fire", "Fire"
+        COLLAPSE = "collapse", "Building collapse"
+        ACCIDENT = "accident", "Major accident"
+        ATTACK = "attack", "Attack or violence"
+        EPIDEMIC = "epidemic", "Epidemic"
+        OTHER = "other", "Other"
+
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=220, unique=True)
+    kind = models.CharField(max_length=12, choices=Kind.choices,
+                            default=Kind.OTHER)
+    started_on = models.DateField()
+    ended_on = models.DateField(null=True, blank=True)
+    counties = models.CharField(
+        max_length=250, blank=True,
+        help_text="Affected counties, separated by commas.")
+    summary = models.TextField(blank=True)
+    official_source = models.CharField(
+        max_length=250, blank=True,
+        help_text="Who confirmed the event, e.g. the county government or "
+                  "National Disaster Operation Centre.")
+    source_url = models.URLField(blank=True)
+    is_public = models.BooleanField(
+        default=False, help_text="Tick when the event is ready to be shown.")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-started_on"]
+
+    def __str__(self):
+        return f"{self.name} ({self.started_on.year})"
+
+
 class Case(models.Model):
     class Type(models.TextChoices):
         MISSING = "missing", "Missing"
@@ -164,6 +205,17 @@ class Case(models.Model):
     clothing_last_seen = models.TextField(blank=True)
     circumstances = models.TextField(blank=True)
 
+    # Disaster link: a person can be tagged to a disaster at any time, but they
+    # only appear on that disaster's public page once police or the authority
+    # has confirmed the person as missing after it.
+    disaster = models.ForeignKey(
+        Disaster, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="cases")
+    disaster_confirmed = models.BooleanField(
+        default=False,
+        help_text="Confirmed missing after this disaster by police or an authority.")
+    disaster_confirmed_at = models.DateTimeField(null=True, blank=True)
+
     # Police handling
     assigned_station = models.ForeignKey(
         "accounts.Organisation", null=True, blank=True,
@@ -188,6 +240,7 @@ class Case(models.Model):
             models.Index(fields=["status", "case_type"]),
             models.Index(fields=["county", "status"]),
             models.Index(fields=["stale_level"]),
+            models.Index(fields=["disaster", "disaster_confirmed"]),
         ]
         permissions = [
             ("post_wanted_notice", "Can post a wanted notice"),
@@ -195,6 +248,12 @@ class Case(models.Model):
         ]
 
     def clean(self):
+        if self.disaster_confirmed and not self.disaster_id:
+            raise ValidationError("Choose a disaster before confirming.")
+        if self.disaster_confirmed and not self.police_verified:
+            raise ValidationError(
+                "A disaster listing must be confirmed by police: tick "
+                "'Police verified' first.")
         # Wanted notices are police-only and must carry an OB number.
         if self.case_type == self.Type.WANTED:
             if self.source != self.Source.POLICE or not self.ob_number:

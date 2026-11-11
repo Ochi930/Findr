@@ -29,3 +29,10 @@ on Case. Thresholds live in `FINDR_STALE_DAYS` (settings): 3/7/14 days for
 adults, 1/3/7 for children. Level 1 reminds the officer, level 2 notifies the
 station commander, level 3 notifies the supervisor via `Organisation.parent`.
 Only a police-authored, non-note update resets the clock.
+
+**Disasters.** `Disaster` is a named event (type, dates, counties, official
+source). A Case may link to one through `disaster`. The person appears on that
+disaster's public page only when `disaster_confirmed` is ticked, which requires
+`police_verified`. Only moderators and platform admins create disasters. Cases
+that stay unresolved are the "never found" list; found cases remain on the page
+but are marked as found.

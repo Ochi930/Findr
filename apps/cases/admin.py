@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Case, CaseUpdate, Media, Subject
+from .models import Case, CaseUpdate, Disaster, Media, Subject
 
 
 class UpdateInline(admin.TabularInline):
@@ -12,7 +12,8 @@ class UpdateInline(admin.TabularInline):
 class CaseAdmin(admin.ModelAdmin):
     list_display = ("reference", "subject", "case_type", "status", "county",
                     "stale_level", "created_at")
-    list_filter = ("case_type", "status", "source", "county", "stale_level")
+    list_filter = ("case_type", "status", "source", "county", "stale_level",
+                   "disaster", "disaster_confirmed")
     search_fields = ("reference", "subject__first_name", "subject__last_name",
                      "subject__other_names", "ob_number")
     inlines = [UpdateInline]
@@ -25,3 +26,11 @@ class SubjectAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Media)
+
+
+@admin.register(Disaster)
+class DisasterAdmin(admin.ModelAdmin):
+    list_display = ("name", "kind", "started_on", "counties", "is_public")
+    list_filter = ("kind", "is_public")
+    search_fields = ("name", "counties")
+    prepopulated_fields = {"slug": ("name",)}
