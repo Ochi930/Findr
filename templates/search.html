@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Search | Findr{% endblock %}
+{% block content %}
+<section class="wrap page">
+  <h1 class="h-page">Search</h1>
+  <p class="muted lede-s">Type any part of a name, a nickname, or a case reference. Spelling does not need to be exact, and the order of names does not matter. Every filter is optional.</p>
+
+  <form class="glass sform" action="{% url 'search' %}" method="get" role="search">
+    <div class="field field--wide">
+      <label for="q">Name, nickname or reference</label>
+      <input id="q" name="q" type="text" value="{{ form.q }}" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="kind">Looking for</label>
+      <select id="kind" name="kind">
+        <option value="">People and pets</option>
+        <option value="person" {% if form.kind == "person" %}selected{% endif %}>People</option>
+        <option value="pet" {% if form.kind == "pet" %}selected{% endif %}>Pets</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="county">County</label>
+      <select id="county" name="county">
+        <option value="">All counties</option>
+        {% for c in counties %}<option value="{{ c }}" {% if form.county == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field field--age">
+      <label for="age_from">Age from</label>
+      <input id="age_from" name="age_from" type="number" min="0" max="130" inputmode="numeric" value="{{ form.age_from }}">
+    </div>
+    <div class="field field--age">
+      <label for="age_to">Age to</label>
+      <input id="age_to" name="age_to" type="number" min="0" max="130" inputmode="numeric" value="{{ form.age_to }}">
+    </div>
+    <div class="field">
+      <label for="sex">Sex</label>
+      <select id="sex" name="sex">
+        <option value="">Any</option>
+        <option value="f" {% if form.sex == "f" %}selected{% endif %}>Female</option>
+        <option value="m" {% if form.sex == "m" %}selected{% endif %}>Male</option>
+        <option value="o" {% if form.sex == "o" %}selected{% endif %}>Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        <option value="">Missing and found</option>
+        <option value="missing" {% if form.status == "missing" %}selected{% endif %}>Still missing</option>
+        <option value="found" {% if form.status == "found" %}selected{% endif %}>Found safe</option>
+      </select>
+    </div>
+    <button class="btn" type="submit">Search</button>
+    {% if searched %}<a class="clear" href="{% url 'search' %}">Clear filters</a>{% endif %}
+  </form>
+
+  <div class="results" aria-live="polite">
+    {% if tiles %}
+      <h2 class="h-section">
+        {% if searched %}{{ total }} result{{ total|pluralize }}{% else %}Recently listed{% endif %}
+      </h2>
+      <div class="tiles">
+        {% for t in tiles %}{% include "_tile.html" %}{% endfor %}
+      </div>
+
+      {% if page.paginator.num_pages > 1 %}
+      <nav class="pager" aria-label="Pages of results">
+        {% if page.has_previous %}<a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page.previous_page_number }}">Previous</a>{% endif %}
+        <span>Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+        {% if page.has_next %}<a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page.next_page_number }}">Next</a>{% endif %}
+      </nav>
+      {% endif %}
+    {% else %}
+      <div class="glass empty">
+        {% if searched %}
+          <h2>No matching records</h2>
+          <p>Nothing matched. Try fewer words, a different spelling, a nickname, or remove the age or county filter. A record only appears here after a police station has acknowledged it, so a very recent report may not be listed yet.</p>
+          <p><a class="btn" href="{% url 'report' %}">Report someone missing</a></p>
+        {% else %}
+          <h2>No cases are listed yet</h2>
+          <p>A case appears here once a police station has acknowledged it.</p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

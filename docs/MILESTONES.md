@@ -3,7 +3,7 @@
 - [x] **M0** Foundations: project, data model, roles, DPIA and privacy drafts
 - [ ] **M1** Citizen reporting, public search, anonymous tips
   - [x] M1a design system and homepage
-  - [ ] M1b search
+  - [x] M1b search
   - [ ] M1c report form
   - [ ] M1d case page and tip form
   - [ ] M1e disaster pages: list of disasters, then every confirmed missing person under each one, with their details

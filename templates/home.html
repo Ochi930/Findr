@@ -80,26 +80,7 @@
   {% if tiles %}
   <div class="tiles">
     {% for t in tiles %}
-    <article class="tile tile--{% cycle 'tide' 'deep' 'sand' %}">
-      <div class="tile__photo">
-        {% if t.photo %}
-          <img src="{{ t.photo }}" alt="Photo of {{ t.name }}" loading="lazy">
-        {% else %}
-          <span class="tile__initials" aria-hidden="true">{{ t.initials }}</span>
-        {% endif %}
-      </div>
-      <div class="tile__body">
-        <h3>{{ t.name }}</h3>
-        {% if t.detail %}<p>{{ t.detail }}</p>{% endif %}
-        {% if t.case.last_seen_place or t.case.county %}
-          <p>Last seen {% if t.case.last_seen_place %}at {{ t.case.last_seen_place }}{% endif %}{% if t.case.county %}, {{ t.case.county }}{% endif %}</p>
-        {% endif %}
-        {% if t.case.last_seen_at %}
-          <p>{{ t.case.last_seen_at|timesince }} ago</p>
-        {% endif %}
-        <p class="ref">{{ t.case.reference }}</p>
-      </div>
-    </article>
+    {% include "_tile.html" %}
     {% endfor %}
   </div>
   {% else %}
