@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="hero">
+  <div class="wrap hero__in">
+    <div class="hero__text">
+      <h1>Help bring someone home.</h1>
+      <p class="lede">Search reports of missing people and pets across Kenya, share what you know, or file a report. Reports are accepted straight away. There is no waiting period.</p>
+
+      <form class="glass finder" action="{% url 'search' %}" method="get" role="search">
+        <div class="field field--grow">
+          <label for="q">Name or nickname</label>
+          <input id="q" name="q" type="text" autocomplete="off" placeholder="Any part of a name">
+        </div>
+        <div class="field">
+          <label for="kind">Looking for</label>
+          <select id="kind" name="kind">
+            <option value="">People and pets</option>
+            <option value="person">People</option>
+            <option value="pet">Pets</option>
+          </select>
+        </div>
+        <button class="btn" type="submit">Search</button>
+      </form>
+    </div>
+
+    <div class="hero__art" aria-hidden="true">
+      <svg viewBox="0 0 480 480" role="presentation">
+        <defs>
+          <linearGradient id="r1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="var(--art-a)"/><stop offset="1" stop-color="var(--art-b)"/>
+          </linearGradient>
+          <linearGradient id="r2" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--art-c)"/><stop offset="1" stop-color="var(--art-a)"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring ring--3" cx="240" cy="240" r="230" fill="url(#r1)" opacity=".22"/>
+        <circle class="ring ring--2" cx="240" cy="240" r="165" fill="url(#r2)" opacity=".35"/>
+        <circle class="ring ring--1" cx="240" cy="240" r="100" fill="url(#r1)" opacity=".55"/>
+        <circle cx="240" cy="240" r="46" fill="none" stroke="var(--sand)" stroke-width="2" opacity=".9"/>
+        <circle cx="240" cy="240" r="9" fill="var(--sand)"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="wrap block">
+  <div class="glass paths">
+    <h2 class="sr">Ways to help</h2>
+
+    <a class="path" href="{% url 'report' %}">
+      <svg viewBox="0 0 32 32" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13" cy="11" r="4.5"/><path d="M4.5 26c0-5 3.8-8 8.5-8s8.5 3 8.5 8"/><path d="M25 8v8M21 12h8"/></svg>
+      <h3>Report someone missing</h3>
+      <p>Tell police and the public. Add a photo, where they were last seen and anything that helps.</p>
+    </a>
+
+    <a class="path" href="{% url 'tip' %}">
+      <svg viewBox="0 0 32 32" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6h22v15H13l-6 5v-5H5z"/><path d="M10 12h12M10 16h8"/></svg>
+      <h3>Send a tip</h3>
+      <p>Saw someone? You can send what you know without an account or your name.</p>
+    </a>
+
+    <a class="path" href="{% url 'hospitals' %}">
+      <svg viewBox="0 0 32 32" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 27V6h20v21"/><path d="M3 27h26"/><path d="M16 11v8M12 15h8"/></svg>
+      <h3>Hospitals and mortuaries</h3>
+      <p>Post people who have not been identified, with whatever details you have.</p>
+    </a>
+
+    <a class="path" href="{% url 'search' %}">
+      <svg viewBox="0 0 32 32" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="14" cy="14" r="8.5"/><path d="M20.5 20.5L27 27"/></svg>
+      <h3>Search the records</h3>
+      <p>Look up a name, nickname, age or county across people, pets and hospital records.</p>
+    </a>
+  </div>
+</section>
+
+<section class="wrap block">
+  <h2 class="h-section">Recently listed</h2>
+
+  {% if tiles %}
+  <div class="tiles">
+    {% for t in tiles %}
+    <article class="tile tile--{% cycle 'tide' 'deep' 'sand' %}">
+      <div class="tile__photo">
+        {% if t.photo %}
+          <img src="{{ t.photo }}" alt="Photo of {{ t.name }}" loading="lazy">
+        {% else %}
+          <span class="tile__initials" aria-hidden="true">{{ t.initials }}</span>
+        {% endif %}
+      </div>
+      <div class="tile__body">
+        <h3>{{ t.name }}</h3>
+        {% if t.detail %}<p>{{ t.detail }}</p>{% endif %}
+        {% if t.case.last_seen_place or t.case.county %}
+          <p>Last seen {% if t.case.last_seen_place %}at {{ t.case.last_seen_place }}{% endif %}{% if t.case.county %}, {{ t.case.county }}{% endif %}</p>
+        {% endif %}
+        {% if t.case.last_seen_at %}
+          <p>{{ t.case.last_seen_at|timesince }} ago</p>
+        {% endif %}
+        <p class="ref">{{ t.case.reference }}</p>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="glass empty">
+    <p>No cases are listed yet. A case appears here once a police station has acknowledged it.</p>
+    <p><a class="btn" href="{% url 'report' %}">Report someone missing</a></p>
+  </div>
+  {% endif %}
+</section>
+
+<section class="wrap block">
+  <div class="glass notice">
+    <h2>Do not wait to report</h2>
+    <p>Kenyan police advise reporting a missing person at the nearest station immediately, after checking with family and friends. There is no 24 or 48 hour rule. The sooner a report is made, the more can be done.</p>
+  </div>
+</section>
+
+{% endblock %}

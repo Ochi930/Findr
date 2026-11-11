@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} | Findr{% endblock %}
+{% block content %}
+<section class="wrap page">
+  <div class="glass soon">
+    <h1>{{ title }}</h1>
+    <p>{{ text }}</p>
+    <p class="muted">Planned for milestone {{ milestone }}.</p>
+    <p><a class="btn" href="{% url 'home' %}">Back to the homepage</a></p>
+  </div>
+</section>
+{% endblock %}

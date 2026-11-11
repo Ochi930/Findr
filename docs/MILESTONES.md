@@ -2,6 +2,10 @@
 
 - [x] **M0** Foundations: project, data model, roles, DPIA and privacy drafts
 - [ ] **M1** Citizen reporting, public search, anonymous tips
+  - [x] M1a design system and homepage
+  - [ ] M1b search
+  - [ ] M1c report form
+  - [ ] M1d case page and tip form
 - [ ] **M2** Police workflow, email dispatch, stale-case escalation
 - [ ] **M3** Found reports, hospital and mortuary module
 - [ ] **M4** Poster generator

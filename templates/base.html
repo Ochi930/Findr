@@ -1,0 +1,60 @@
+{% load static %}<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Findr{% endblock %}</title>
+  <meta name="description" content="Search and report missing people and pets in Kenya.">
+  <script>
+    try {
+      var t = localStorage.getItem("findr-theme");
+      if (t === "light" || t === "dark" || t === "auto") {
+        document.documentElement.setAttribute("data-theme", t);
+      }
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="{% static 'css/findr.css' %}">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="bar">
+    <div class="wrap bar__in">
+      <a class="brand" href="{% url 'home' %}" aria-label="Findr home">
+        <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+          <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".35"/>
+          <circle cx="16" cy="16" r="8" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".65"/>
+          <circle cx="16" cy="16" r="3.2" fill="var(--sand)"/>
+        </svg>
+        <span>Findr</span>
+      </a>
+
+      <nav class="nav" aria-label="Main">
+        <a href="{% url 'search' %}">Search</a>
+        <a href="{% url 'report' %}">Report someone</a>
+        <a href="{% url 'tip' %}">Send a tip</a>
+        <a href="{% url 'hospitals' %}">Hospitals</a>
+      </nav>
+
+      <div class="theme" role="group" aria-label="Colour mode">
+        <button type="button" data-set-theme="auto">Auto</button>
+        <button type="button" data-set-theme="light">Light</button>
+        <button type="button" data-set-theme="dark">Dark</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">{% block content %}{% endblock %}</main>
+
+  <footer class="foot">
+    <div class="wrap foot__in">
+      <p class="foot__note">
+        If someone is in immediate danger, call 999 or 112. To reach Childline Kenya, call 116.
+      </p>
+      <p class="foot__small">Findr works with, and does not replace, the police. Reports are reviewed by a police station before they are listed.</p>
+    </div>
+  </footer>
+
+  <script src="{% static 'js/theme.js' %}"></script>
+</body>
+</html>
