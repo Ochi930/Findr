@@ -1,12 +1,15 @@
 from datetime import date
 
+from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.shortcuts import render
+from django.db import transaction
+from django.shortcuts import redirect, render
 
-from apps.cases.models import Case
+from apps.cases.models import Case, Media, Subject
 
 from . import search as finder
 from .constants import COUNTIES
+from .forms  import SKIN_SWATCHES, ReportForm
 
 # Only cases a police station has acknowledged are listed publicly.
 PUBLIC_STATUSES = ["active"]
@@ -133,12 +136,6 @@ def search(request):
     })
 
 
-def report(request):
-    return _soon(request, "Report someone missing",
-                 "The report form, with photo upload and last-seen details, is coming.",
-                 "M1c")
-
-
 def tip(request):
     return _soon(request, "Send a tip",
                  "Anonymous tips need no account. This form is coming.",
@@ -149,3 +146,78 @@ def hospitals(request):
     return _soon(request, "Hospitals and mortuaries",
                  "Verified hospitals and mortuaries will be able to post here.",
                  "M3")
+
+REPORT_LIMIT = 5
+
+@transaction.atomic
+def _save_report(d, user):
+    age_From, age_to = d["age_from"], d["age_to"]
+    subject = Subject.objects.create(
+        kind=d["kind"],
+        first_name=d["first_name"], middle_name=d["middle_name"],
+        last_name=d["last_name"], other_names=d["other_names"],
+        sex=d["sex"], 
+        age_min=age_from, 
+        age_max=age_to if age_to is not None else age_from,
+        height_cm=d["height_cm"], 
+        build=d["build"] or "unknown"
+        skin_tone=int(d["skin_tone"]) if d["skin_tone"] else None,
+        skin_tone_notes=d["skin_tone_notes"],
+        hair=d["hair"], eyes=d["eyes"],
+        distinguishing_marks=d["distinguishing_marks"],
+        medical_needs=d["medical_needs"], 
+        species=d["species"], breed=d["breed"],
+        colour_markings=d["colour_markings"],
+    )
+    reporter = user if user.is_authenticated else None
+    case = Case.objects.create(
+        subject=subject,
+        case_type=Case.Type.MISSING,
+        status=Case.Status.SUBMITTED,
+        source=Case.Source.CITIZEN,
+        reporter=reporter,
+        reporter_name=d["reporter_name"],
+        reporter_phone=d["reporter_phone"],
+        reporter_email=d["reporter_email"],
+        relationship_to_subject=d["relationship"],
+        last_seen_date=d["last_seen_date"],
+        last_seen_place=d["last_seen_place"],
+        county=d["county"],
+        clothing_last_seen=d["clothing_last_seen"],
+        circumstances=d["circumstances"],
+    )
+    for i, photo in enumerate(d["photos"]:
+        Media.objects.create(
+            case=case,
+            kind=Media.Kind.LAST_SEEN if i == 0 else Media.Kind.PHOTO,
+            file=photo, uploaded_by=reporter,
+            consent_for_matching=d["consent_matching"])
+    return case
+
+
+def report(request):
+    context = {"swatches": SKIN_SWATCHES}
+    if request.method == "POST":
+        key = f"report_count:{request.META.get('REMOTE_ADDR', '')}"
+        count = cache.get(key, 0)
+        form = ReportForm(request.POST, request.FILES)
+        if count >= REPORT_LIMIT:
+            context.update(form=form, limited=True)
+            return render(request, "report.html", context, status=429)
+        if form.is_valid():
+            if form.cleaned_data["website"]:
+                return redirect("home")
+            case = _save_report(form.cleaned_data, request.user)
+            cache.set(key, count + 1, 3600)
+            request.session["last_report"] = case.reference
+            return redirect("report_done")
+    else:
+        form = ReportForm()
+    context["form"] = form
+    return render(request, "report.html", context)
+
+def report_done(request):
+    reference = request.session.get("last_report")
+    if not reference:
+        return redirect("report")
+    return render(request, "report_done.html", {"reference": reference})
